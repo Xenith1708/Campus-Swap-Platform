@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Marketplace{% endblock %}
+{% block head %}
+  <style>
+    .market-hero { margin-bottom: 31px; }
+    .market-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 17px; }
+    .market-heading .section-kicker { color: var(--green); }
+    .results-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .search-row { display: grid; grid-template-columns: minmax(180px, 1fr) 190px 150px auto; gap: 10px; margin-bottom: 20px; }
+    .search-row input, .search-row select { width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 11px; padding: 0 13px; background: white; color: var(--ink); }
+    .search-row button { min-height: 46px; }
+    .listing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; padding-bottom: 25px; }
+    .item-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid #eaede8; border-radius: 16px; background: var(--paper); transition: transform .2s, box-shadow .2s; }
+    .item-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .item-art { display: grid; min-height: 126px; place-items: center; background: #eaf2eb; font-size: 50px; }
+    .item-art.book { background: #f1e8db; }
+    .item-art.lab-coat { background: #e2edf0; }
+    .item-art.calculator { background: #e9e7f1; }
+    .item-body { display: flex; flex: 1; flex-direction: column; padding: 15px; }
+    .item-topline { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+    .item-title { margin: 0; font-size: 15px; line-height: 1.4; }
+    .item-price { flex: none; color: var(--green); font-size: 15px; font-weight: 780; }
+    .item-meta { display: flex; flex-wrap: wrap; gap: 7px; margin: 11px 0 15px; color: var(--muted); font-size: 11px; }
+    .tag { border-radius: 6px; padding: 4px 7px; background: #f2f4ef; color: #647065; }
+    .tag-type { background: var(--green-pale); color: var(--green); }
+    .item-description { margin: 0 0 14px; color: #68726a; font-size: 12px; line-height: 1.55; }
+    .item-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid #f0f1ee; font-size: 11px; }
+    .item-footer .seller { overflow: hidden; color: #68726a; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-link { flex: none; border-radius: 8px; padding: 8px 10px; background: #f0f4ee; color: var(--green); font-weight: 700; text-decoration: none; }
+    .empty-state { grid-column: 1 / -1; padding: 55px 15px; border: 1px dashed #d9dfd7; border-radius: 16px; color: var(--muted); text-align: center; }
+    .empty-state strong { display: block; margin-bottom: 6px; color: var(--ink); font-size: 16px; }
+    @media (max-width: 850px) {
+      .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .search-row { grid-template-columns: minmax(160px, 1fr) 1fr 1fr; }
+      .search-row button { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+      .market-heading { align-items: start; }
+      .market-heading h2 { font-size: 22px; }
+      .search-row { grid-template-columns: 1fr 1fr; }
+      .search-row input { grid-column: 1 / -1; }
+      .listing-grid { grid-template-columns: 1fr; gap: 13px; }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <section class="hero market-hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow">Pass it on, campus</p>
+      <h1 id="hero-title">Good finds.<br>Good campus karma.</h1>
+      <p>Find the things your next semester needs — from people right here on campus.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="market-title">
+    <div class="market-heading">
+      <div><p class="section-kicker">The campus marketplace</p><h2 id="market-title">Find your next good thing</h2></div>
+      <span class="results-count" aria-live="polite">{{ listings|length }} listing{% if listings|length != 1 %}s{% endif %}</span>
+    </div>
+    <form class="search-row" method="get" action="{{ url_for('index') }}">
+      <input type="search" name="q" value="{{ query }}" placeholder="Search items, sellers, or hostel..." aria-label="Search listings">
+      <select name="category" aria-label="Filter by category">
+        <option value="">All categories</option>
+        {% for item_category in categories %}
+          <option value="{{ item_category }}" {% if selected_category == item_category %}selected{% endif %}>{{ item_category }}</option>
+        {% endfor %}
+      </select>
+      <select name="listing_type" aria-label="Filter by listing type">
+        <option value="">Sell or rent</option>
+        {% for kind in ("Sell", "Rent") %}
+          <option value="{{ kind }}" {% if selected_type == kind %}selected{% endif %}>{{ kind }}</option>
+        {% endfor %}
+      </select>
+      <button class="button" type="submit">Search</button>
+    </form>
+
+    <div class="listing-grid" aria-live="polite">
+      {% for listing in listings %}
+        <article class="item-card">
+          <div class="item-art {{ listing.category|lower|replace(' ', '-') }}" aria-hidden="true">
+            {% if listing.category == "Book" %}📚{% elif listing.category == "Lab Coat" %}🥼{% elif listing.category == "Calculator" %}🧮{% else %}🧰{% endif %}
+          </div>
+          <div class="item-body">
+            <div class="item-topline">
+              <h3 class="item-title">{{ listing.title }}</h3>
+              <span class="item-price">₹{{ listing.price|money }}</span>
+            </div>
+            <div class="item-meta">
+              <span class="tag tag-type">For {{ listing.listing_type|lower }}</span>
+              <span class="tag">{{ listing.category }}</span>
+            </div>
+            {% if listing.description %}
+              <p class="item-description">{{ listing.description|truncate(120) }}</p>
+            {% endif %}
+            <div class="item-footer">
+              <span class="seller">{{ listing.seller_name }} · {{ listing.hostel_room }}</span>
+              <a class="detail-link" href="{{ url_for('listing_detail', listing_id=listing.id) }}">View details ↗</a>
+            </div>
+          </div>
+        </article>
+      {% else %}
+        <div class="empty-state">
+          <strong>No listings found just yet</strong>
+          Try another search or be the first to share something useful.
+          <p><a href="{{ url_for('add_listing') }}">Create a listing</a></p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

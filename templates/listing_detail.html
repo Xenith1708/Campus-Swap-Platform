@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.title }}{% endblock %}
+{% block head %}
+  <style>
+    .detail-card { display: grid; grid-template-columns: minmax(220px, .8fr) 1.2fr; overflow: hidden; margin: 28px auto 45px; border: 1px solid var(--line); border-radius: 18px; background: white; box-shadow: var(--shadow); }
+    .detail-art { display: grid; min-height: 330px; place-items: center; background: #eaf2eb; font-size: 96px; }
+    .detail-art.book { background: #f1e8db; }
+    .detail-art.lab-coat { background: #e2edf0; }
+    .detail-art.calculator { background: #e9e7f1; }
+    .detail-copy { padding: clamp(22px, 5vw, 42px); }
+    .detail-copy .section-kicker { color: var(--green); }
+    .detail-copy h1 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -1.5px; overflow-wrap: anywhere; }
+    .detail-price { margin: 19px 0; color: var(--green); font-size: 27px; font-weight: 780; }
+    .detail-price small { color: var(--muted); font-size: 13px; font-weight: 500; }
+    .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 21px; }
+    .detail-description { color: #58635a; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .seller-panel { margin-top: 24px; padding: 17px; border-radius: 12px; background: #f6f8f4; }
+    .seller-panel h2 { font-size: 16px; }
+    .seller-panel p { margin: 9px 0 0; color: #58635a; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+    .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 23px; }
+    @media (max-width: 680px) {
+      .detail-card { grid-template-columns: 1fr; }
+      .detail-art { min-height: 190px; font-size: 68px; }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <a class="muted" href="{{ url_for('index') }}">← Back to marketplace</a>
+  <article class="detail-card">
+    <div class="detail-art {{ listing.category|lower|replace(' ', '-') }}" aria-hidden="true">
+      {% if listing.category == "Book" %}📚{% elif listing.category == "Lab Coat" %}🥼{% elif listing.category == "Calculator" %}🧮{% else %}🧰{% endif %}
+    </div>
+    <div class="detail-copy">
+      <p class="section-kicker">{{ listing.category }} · Listed {{ listing.created_at }}</p>
+      <h1>{{ listing.title }}</h1>
+      <p class="detail-price">₹{{ listing.price|money }} <small>· For {{ listing.listing_type|lower }}</small></p>
+      <div class="detail-tags"><span class="tag">{{ listing.category }}</span><span class="tag">{{ listing.listing_type }}</span></div>
+      <h2>Description</h2>
+      <p class="detail-description">{{ listing.description or "The seller has not added a description." }}</p>
+      <section class="seller-panel" aria-labelledby="seller-title">
+        <h2 id="seller-title">Contact the seller</h2>
+        <p><strong>{{ listing.seller_name }}</strong><br>{{ listing.hostel_room }}</p>
+        <p>Contact: <a href="mailto:{{ listing.seller_email }}">{{ listing.seller_email }}</a><br>{{ listing.contact_info }}</p>
+      </section>
+      <div class="detail-actions">
+        <a class="button" href="mailto:{{ listing.seller_email }}?subject={{ ('CampusSwap: ' ~ listing.title)|urlencode }}">Email seller</a>
+        <a class="button button-light" href="{{ url_for('index') }}">Back to marketplace</a>
+      </div>
+    </div>
+  </article>
+{% endblock %}

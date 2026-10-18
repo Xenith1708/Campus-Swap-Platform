@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Create a listing{% endblock %}
+{% block head %}
+  <style>
+    .form-card { max-width: 760px; margin: 28px auto 45px; border: 1px solid var(--line); border-radius: 18px; padding: clamp(20px, 5vw, 34px); background: white; box-shadow: var(--shadow); }
+    .form-card .section-kicker { color: var(--green); }
+    .form-intro { margin: 9px 0 24px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: #4c574e; font-size: 12px; font-weight: 690; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 43px; border: 1px solid #e1e6df; border-radius: 9px; padding: 10px 11px; background: white; color: var(--ink); }
+    .field textarea { min-height: 100px; resize: vertical; }
+    .field-hint { color: #818a82; font-size: 11px; line-height: 1.5; }
+    .form-actions { display: flex; justify-content: end; gap: 9px; margin-top: 22px; }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .form-actions { justify-content: stretch; }
+      .form-actions .button { flex: 1; }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <section class="form-card" aria-labelledby="form-title">
+    <p class="section-kicker">Give it a new chapter</p>
+    <h1 id="form-title" style="font-size:30px;letter-spacing:-1px">Create a listing</h1>
+    <p class="form-intro">Share a book, lab coat, calculator, or other useful gear with your campus community.</p>
+    <form method="post" action="{{ url_for('add_listing') }}">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="title">Item title *</label>
+          <input id="title" name="title" maxlength="100" value="{{ form.get('title', '') }}" placeholder="e.g. Casio scientific calculator" required>
+        </div>
+        <div class="field">
+          <label for="category">Category *</label>
+          <select id="category" name="category" required>
+            <option value="">Choose a category</option>
+            {% for category in categories %}
+              <option value="{{ category }}" {% if form.get('category') == category %}selected{% endif %}>{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="listing_type">Listing type *</label>
+          <select id="listing_type" name="listing_type" required>
+            <option value="">Sell or rent</option>
+            {% for kind in ("Sell", "Rent") %}
+              <option value="{{ kind }}" {% if form.get('listing_type') == kind %}selected{% endif %}>{{ kind }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="price">Price in ₹ *</label>
+          <input id="price" name="price" type="number" min="0" step="0.01" value="{{ form.get('price', '') }}" placeholder="e.g. 450" required>
+          <span class="field-hint">For rentals, note the time period in the description.</span>
+        </div>
+        <div class="field">
+          <label for="contact_info">Contact info *</label>
+          <input id="contact_info" name="contact_info" maxlength="120" value="{{ form.get('contact_info', '') }}" placeholder="Phone number or preferred contact" required>
+        </div>
+        <div class="field full">
+          <label for="description">Description and rental terms</label>
+          <textarea id="description" name="description" maxlength="1000" placeholder="Condition, rental period, course details, or pickup preference...">{{ form.get('description', '') }}</textarea>
+        </div>
+        <div class="field full"><p class="section-kicker">About you</p></div>
+        <div class="field">
+          <label for="name">Your name *</label>
+          <input id="name" name="name" maxlength="80" value="{{ form.get('name', '') }}" required>
+        </div>
+        <div class="field">
+          <label for="email">Campus email *</label>
+          <input id="email" name="email" type="email" maxlength="254" value="{{ form.get('email', '') }}" placeholder="you@college.edu" required>
+        </div>
+        <div class="field full">
+          <label for="hostel_room">Hostel / room *</label>
+          <input id="hostel_room" name="hostel_room" maxlength="80" value="{{ form.get('hostel_room', '') }}" placeholder="e.g. Maple Hostel, Room 204" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <a class="button button-light" href="{{ url_for('index') }}">Cancel</a>
+        <button class="button" type="submit">Publish listing</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

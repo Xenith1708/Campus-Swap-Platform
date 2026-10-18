@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8f5">
+  <title>CampusSwap — good finds, good karma</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202923;
+      --muted: #778079;
+      --line: #e8ebe6;
+      --paper: #fff;
+      --canvas: #f7f8f5;
+      --green: #285b43;
+      --green-dark: #204a36;
+      --green-pale: #eaf2eb;
+      --lime: #d8ed83;
+      --coral: #e88168;
+      --shadow: 0 14px 38px rgba(34, 52, 41, .08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(74, 126, 91, .28);
+      outline-offset: 2px;
+    }
+    .shell { width: min(1160px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-size: 19px; font-weight: 760; letter-spacing: -.7px; }
+    .brand-mark { display: grid; width: 35px; height: 35px; place-items: center; border-radius: 12px; background: var(--green); color: white; font-size: 19px; }
+    .brand span:last-child em { color: var(--green); font-style: normal; }
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+    .campus-pill { display: inline-flex; align-items: center; gap: 7px; color: #556258; font-size: 12px; font-weight: 650; }
+    .campus-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #69a26d; box-shadow: 0 0 0 3px #e7f1e6; }
+    .button { border: 0; border-radius: 11px; padding: 11px 16px; font-weight: 680; transition: transform .16s, background .16s, box-shadow .16s; }
+    .button:hover { transform: translateY(-1px); }
+    .button-primary { background: var(--green); color: white; box-shadow: 0 5px 13px rgba(40, 91, 67, .17); }
+    .button-primary:hover { background: var(--green-dark); }
+    .button-light { background: #f1f4ef; color: var(--green); }
+    .button-light:hover { background: #e9eee7; }
+
+    .hero { position: relative; overflow: hidden; margin: 12px 0 30px; padding: 43px 48px 40px; border-radius: 24px; color: white; background: #285b43; }
+    .hero::before, .hero::after { position: absolute; content: ""; pointer-events: none; border-radius: 50%; }
+    .hero::before { width: 330px; height: 330px; right: 7%; top: -205px; border: 1px solid rgba(255,255,255,.15); box-shadow: 0 0 0 28px rgba(255,255,255,.035), 0 0 0 58px rgba(255,255,255,.025); }
+    .hero::after { width: 180px; height: 180px; right: 13%; bottom: -126px; background: rgba(216,237,131,.12); }
+    .hero-copy { position: relative; z-index: 1; max-width: 560px; }
+    .eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 13px; color: #d6e7d8; font-size: 11px; font-weight: 740; letter-spacing: 1.45px; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--lime); }
+    h1 { margin: 0; max-width: 540px; font-size: clamp(36px, 5.2vw, 57px); line-height: 1.04; letter-spacing: -2.8px; }
+    .hero p { margin: 14px 0 0; max-width: 435px; color: #d4e1d6; font-size: 15px; line-height: 1.65; }
+    .hero-note { position: absolute; z-index: 1; right: 46px; bottom: 37px; display: flex; align-items: center; gap: 11px; padding: 11px 15px 11px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 14px; background: rgba(255,255,255,.09); backdrop-filter: blur(6px); }
+    .hero-note-icon { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: var(--lime); color: #2e4e35; font-size: 17px; }
+    .hero-note strong, .hero-note small { display: block; }
+    .hero-note strong { font-size: 12px; }
+    .hero-note small { margin-top: 3px; color: #d4e1d6; font-size: 10px; }
+
+    .market-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 0 0 17px; }
+    .section-kicker { margin: 0 0 5px; color: var(--green); font-size: 10px; font-weight: 760; letter-spacing: 1.45px; text-transform: uppercase; }
+    h2 { margin: 0; font-size: 25px; letter-spacing: -.9px; }
+    .results-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .search-row { display: flex; gap: 11px; margin-bottom: 19px; }
+    .search-box { display: flex; flex: 1; align-items: center; gap: 11px; min-width: 0; padding: 0 15px; border: 1px solid var(--line); border-radius: 12px; background: white; color: #869087; }
+    .search-box svg { flex: none; }
+    .search-box input { width: 100%; height: 46px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 13px; }
+    .search-box input::placeholder { color: #929a93; }
+    .select-wrap select { height: 48px; min-width: 143px; padding: 0 32px 0 13px; border: 1px solid var(--line); border-radius: 12px; appearance: none; background: white; color: #5c675e; font-size: 12px; }
+    .select-wrap { position: relative; }
+    .select-wrap::after { position: absolute; top: 17px; right: 13px; content: "⌄"; color: #778079; pointer-events: none; }
+    .category-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 25px; }
+    .category-chip { border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; background: white; color: #667068; font-size: 11px; font-weight: 620; transition: .15s; }
+    .category-chip:hover { border-color: #bdd0c0; color: var(--green); }
+    .category-chip.active { border-color: var(--green); background: var(--green); color: white; }
+
+    .listing-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; padding-bottom: 45px; }
+    .item-card { overflow: hidden; border: 1px solid #eaede8; border-radius: 16px; background: var(--paper); transition: transform .2s, box-shadow .2s; }
+    .item-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .item-art { position: relative; display: grid; height: 178px; place-items: center; overflow: hidden; background: var(--art-bg, #f0f2e9); }
+    .item-art::before, .item-art::after { position: absolute; content: ""; border: 1px solid rgba(32,41,35,.07); border-radius: 50%; }
+    .item-art::before { width: 190px; height: 190px; }
+    .item-art::after { width: 135px; height: 135px; }
+    .art-emoji { position: relative; z-index: 1; font-size: 74px; filter: drop-shadow(0 9px 8px rgba(29,39,31,.12)); }
+    .art-label { position: absolute; z-index: 1; right: 12px; bottom: 11px; color: rgba(32,41,35,.46); font-size: 9px; font-weight: 740; letter-spacing: 1.2px; text-transform: uppercase; }
+    .item-flags { position: absolute; z-index: 2; top: 12px; left: 12px; display: flex; gap: 6px; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 9px; background: rgba(255,255,255,.93); color: #59645b; font-size: 9px; font-weight: 730; box-shadow: 0 2px 8px rgba(25,35,27,.05); }
+    .badge-intent { background: #eaf2eb; color: #285b43; }
+    .badge-status { background: #fff3e7; color: #9b682d; }
+    .item-body { padding: 15px 15px 14px; }
+    .item-topline { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+    .item-title { margin: 0; font-size: 15px; line-height: 1.35; letter-spacing: -.25px; }
+    .item-price { flex: none; color: var(--green); font-size: 15px; font-weight: 790; letter-spacing: -.4px; }
+    .item-price small { display: block; margin-top: 2px; color: #8b948d; font-size: 9px; font-weight: 550; text-align: right; letter-spacing: 0; }
+    .item-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 11px 0 13px; color: var(--muted); font-size: 10px; }
+    .condition { border-radius: 5px; padding: 4px 7px; background: #f2f4ef; color: #647065; font-weight: 670; }
+    .item-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 11px; border-top: 1px solid #f0f1ee; }
+    .seller { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .avatar { display: grid; flex: none; width: 27px; height: 27px; place-items: center; border-radius: 50%; background: #eaf0e8; color: var(--green); font-size: 9px; font-weight: 760; }
+    .seller span { overflow: hidden; color: #68726a; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .request-button { flex: none; border: 0; border-radius: 8px; padding: 8px 10px; background: #f0f4ee; color: var(--green); font-size: 10px; font-weight: 720; transition: background .15s; }
+    .request-button:hover { background: #e3ece1; }
+    .empty-state { grid-column: 1 / -1; padding: 55px 15px; border: 1px dashed #d9dfd7; border-radius: 16px; color: var(--muted); text-align: center; }
+    .empty-state strong { display: block; margin-bottom: 6px; color: var(--ink); font-size: 16px; }
+    .footer { display: flex; justify-content: space-between; gap: 15px; padding: 17px 0 25px; border-top: 1px solid var(--line); color: #818a82; font-size: 10px; }
+
+    .overlay { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(22,31,24,.43); backdrop-filter: blur(3px); }
+    .overlay[hidden] { display: none; }
+    .dialog { position: relative; width: min(510px, 100%); max-height: min(90vh, 780px); overflow-y: auto; border: 1px solid rgba(255,255,255,.7); border-radius: 19px; padding: 25px; background: white; box-shadow: 0 25px 80px rgba(22,31,24,.24); animation: rise .18s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
+    .dialog-head { display: flex; align-items: start; justify-content: space-between; gap: 15px; margin-bottom: 20px; }
+    .dialog-head h2 { font-size: 21px; }
+    .dialog-head p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .close-button { display: grid; flex: none; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 9px; background: #f1f3f0; color: #5c665d; font-size: 19px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { color: #4c574e; font-size: 11px; font-weight: 690; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 41px; border: 1px solid #e1e6df; border-radius: 9px; padding: 10px 11px; background: #fff; color: var(--ink); font-size: 12px; }
+    .field textarea { min-height: 72px; resize: vertical; }
+    .field input[type="file"] { padding: 8px; font-size: 10px; }
+    .field-hint { color: #909891; font-size: 9px; line-height: 1.4; }
+    .form-actions { display: flex; justify-content: end; gap: 9px; margin-top: 20px; }
+    .request-summary { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #edf0eb; border-radius: 12px; background: #fafbf9; }
+    .request-summary .mini-art { display: grid; flex: none; width: 51px; height: 51px; place-items: center; border-radius: 10px; background: var(--art-bg, #f0f2e9); font-size: 27px; }
+    .request-summary strong { display: block; font-size: 12px; }
+    .request-summary small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .instructions { margin: 14px 0; padding: 13px; border-radius: 11px; background: #edf4ed; color: #3c5942; font-size: 11px; line-height: 1.6; }
+    .instructions strong { display: block; margin-bottom: 3px; font-size: 11px; }
+    .chat-box { max-height: 180px; min-height: 88px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 11px; border: 1px solid #edf0eb; border-radius: 11px; background: #fbfcfa; }
+    .chat-note { align-self: center; max-width: 90%; color: #879088; font-size: 9px; line-height: 1.5; text-align: center; }
+    .chat-message { max-width: 82%; padding: 8px 10px; border-radius: 10px 10px 10px 3px; background: #edf1ec; color: #475249; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+    .chat-message.mine { align-self: end; border-radius: 10px 10px 3px 10px; background: var(--green); color: white; }
+    .chat-form { display: flex; gap: 8px; }
+    .chat-form input { flex: 1; min-width: 0; border: 1px solid #e1e6df; border-radius: 9px; padding: 10px 11px; font-size: 11px; }
+    .toast { position: fixed; z-index: 20; right: 20px; bottom: 20px; max-width: min(360px, calc(100% - 40px)); padding: 12px 16px; border-radius: 11px; background: #243d2c; color: white; font-size: 12px; box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: none; }
+
+    @media (max-width: 800px) {
+      .hero { padding: 37px 32px; }
+      .hero-note { right: 25px; bottom: 20px; transform: scale(.92); transform-origin: right bottom; }
+      .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 30px, 460px); }
+      .topbar { height: 65px; }
+      .brand { font-size: 17px; }
+      .campus-pill { display: none; }
+      .button { padding: 10px 12px; font-size: 11px; }
+      .hero { margin-top: 9px; padding: 30px 23px 31px; border-radius: 19px; }
+      .hero-copy { max-width: 100%; }
+      h1 { max-width: 350px; font-size: 41px; letter-spacing: -2px; }
+      .hero p { max-width: 330px; font-size: 13px; }
+      .hero-note { position: relative; right: auto; bottom: auto; display: inline-flex; margin-top: 19px; transform: none; }
+      .hero::before { right: -140px; }
+      .market-heading { align-items: start; }
+      h2 { font-size: 22px; }
+      .search-row { flex-wrap: wrap; }
+      .search-box { flex-basis: 100%; }
+      .select-wrap { flex: 1; }
+      .select-wrap select { width: 100%; }
+      .listing-grid { grid-template-columns: 1fr; gap: 13px; }
+      .item-card { display: grid; grid-template-columns: 37% 1fr; }
+      .item-art { height: 100%; min-height: 190px; }
+      .art-emoji { font-size: 55px; }
+      .item-flags { top: 9px; left: 8px; flex-direction: column; align-items: start; gap: 4px; }
+      .badge { padding: 5px 7px; font-size: 8px; }
+      .art-label { right: auto; left: 10px; bottom: 8px; font-size: 7px; }
+      .item-body { padding: 13px 12px 12px; }
+      .item-title { font-size: 13px; }
+      .item-price { font-size: 13px; }
+      .item-meta { gap: 5px; margin: 9px 0 10px; font-size: 9px; }
+      .item-footer { align-items: end; }
+      .seller span { max-width: 76px; font-size: 8px; }
+      .request-button { padding: 8px; font-size: 9px; }
+      .footer { flex-direction: column; }
+      .dialog { padding: 20px 17px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <a class="brand" href="#" aria-label="CampusSwap home">
+      <span class="brand-mark" aria-hidden="true">↗</span>
+      <span>campus<em>swap</em></span>
+    </a>
+    <div class="top-actions">
+      <span class="campus-pill">Your campus community</span>
+      <button class="button button-primary" id="open-create" type="button">＋ &nbsp;Create listing</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow">Pass it on, campus</div>
+        <h1 id="hero-title">Good finds.<br>Good campus karma.</h1>
+        <p>Find the things your next semester needs — from people right here on campus.</p>
+      </div>
+      <div class="hero-note">
+        <span class="hero-note-icon" aria-hidden="true">♧</span>
+        <span><strong>Better together</strong><small>Give great gear a second life</small></span>
+      </div>
+    </section>
+
+    <section aria-labelledby="market-title">
+      <div class="market-heading">
+        <div><p class="section-kicker">The campus marketplace</p><h2 id="market-title">Find your next good thing</h2></div>
+        <span class="results-count" id="results-count" aria-live="polite"></span>
+      </div>
+      <div class="search-row">
+        <label class="search-box" aria-label="Search listings">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"></circle><path d="m16 16 4.4 4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+          <input id="search-input" type="search" placeholder="Search textbooks, calculators, lab gear..." autocomplete="off">
+        </label>
+        <label class="select-wrap"><span class="sr-only" hidden>Filter by listing type</span>
+          <select id="type-filter" aria-label="Filter by listing type">
+            <option value="all">All listing types</option>
+            <option value="buy">For sale</option>
+            <option value="rent">For rent</option>
+          </select>
+        </label>
+        <label class="select-wrap">
+          <select id="condition-filter" aria-label="Filter by item condition">
+            <option value="all">Any condition</option>
+            <option value="New">New</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+          </select>
+        </label>
+      </div>
+      <nav class="category-row" id="category-filters" aria-label="Filter by category"></nav>
+      <div class="listing-grid" id="listing-grid" aria-live="polite"></div>
+    </section>
+
+    <footer class="footer">
+      <span>Made for the campus community · Swap thoughtfully</span>
+      <span>Meet in public campus spaces. Be kind, be safe.</span>
+    </footer>
+  </main>
+
+  <div class="overlay" id="create-overlay" hidden>
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="create-title">
+      <div class="dialog-head">
+        <div><p class="section-kicker">Give it a new chapter</p><h2 id="create-title">Create a listing</h2><p>Share something useful with your campus community.</p></div>
+        <button class="close-button" type="button" data-close aria-label="Close dialog">×</button>
+      </div>
+      <form id="listing-form">
+        <div class="form-grid">
+          <div class="field full"><label for="listing-title">Item title *</label><input id="listing-title" name="title" maxlength="70" placeholder="e.g. Casio scientific calculator" required></div>
+          <div class="field"><label for="listing-category">Category *</label><select id="listing-category" name="category" required></select></div>
+          <div class="field"><label for="listing-type">Listing type *</label><select id="listing-type" name="type" required><option value="buy">For sale</option><option value="rent">For rent</option></select></div>
+          <div class="field"><label for="listing-price">Price (₹) *</label><input id="listing-price" name="price" type="number" min="0" max="1000000" step="1" placeholder="e.g. 450" required></div>
+          <div class="field"><label for="listing-condition">Condition *</label><select id="listing-condition" name="condition" required><option>New</option><option selected>Good</option><option>Fair</option></select></div>
+          <div class="field"><label for="listing-department">Department *</label><input id="listing-department" name="department" maxlength="45" placeholder="e.g. Mechanical Engineering" required></div>
+          <div class="field"><label for="listing-contact">Contact (email or phone) *</label><input id="listing-contact" name="contact" maxlength="100" placeholder="Your campus contact" required></div>
+          <div class="field full"><label for="listing-description">A little more about it</label><textarea id="listing-description" name="description" maxlength="280" placeholder="Add details, rental period, course code, or pickup preference..."></textarea></div>
+          <div class="field full"><label for="listing-image">Photo (optional)</label><input id="listing-image" name="image" type="file" accept="image/png,image/jpeg,image/webp"><span class="field-hint">JPG, PNG, or WebP · up to 2 MB</span></div>
+        </div>
+        <div class="form-actions"><button class="button button-light" type="button" data-close>Cancel</button><button class="button button-primary" type="submit">Publish listing</button></div>
+      </form>
+    </section>
+  </div>
+
+  <div class="overlay" id="request-overlay" hidden>
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="request-title">
+      <div class="dialog-head">
+        <div><p class="section-kicker">Make a campus connection</p><h2 id="request-title">Request this item</h2><p>Send the owner a note to get the conversation started.</p></div>
+        <button class="close-button" type="button" data-close aria-label="Close dialog">×</button>
+      </div>
+      <div id="request-content"></div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const categories = ["All items", "Textbooks", "Lab Equipment", "Calculators", "Electronics"];
+      const categoryVisuals = {
+        "Textbooks": { icon: "📚", bg: "#f1e8db", label: "THE NEXT CHAPTER" },
+        "Lab Equipment": { icon: "🥼", bg: "#e2edf0", label: "READY FOR THE LAB" },
+        "Calculators": { icon: "🧮", bg: "#e9e7f1", label: "LET'S FIGURE IT OUT" },
+        "Electronics": { icon: "🎧", bg: "#e9eddf", label: "GOOD GEAR, AGAIN" }
+      };
+      const seedItems = [
+        { id: "sample-1", title: "Engineering Mathematics — Vol. 1", category: "Textbooks", type: "buy", price: 320, condition: "Good", department: "Computer Science", seller: "Aarav M.", contact: "aarav@campus.edu", description: "Clean pages, a few useful notes in the margins. Great for first-year engineering.", icon: "📚", bg: "#f1e8db", status: "Available" },
+        { id: "sample-2", title: "Lab coat · size M", category: "Lab Equipment", type: "rent", price: 80, condition: "Good", department: "Biotechnology", seller: "Mira S.", contact: "mira@campus.edu", description: "Freshly washed, knee-length lab coat. Rental price per week.", icon: "🥼", bg: "#e2edf0", status: "Available" },
+        { id: "sample-3", title: "Casio fx-991EX scientific calculator", category: "Calculators", type: "buy", price: 750, condition: "New", department: "Electrical Engineering", seller: "Dev P.", contact: "dev@campus.edu", description: "Barely used and includes the original cover. Happy to meet near the library.", icon: "🧮", bg: "#e9e7f1", status: "Available" },
+        { id: "sample-4", title: "Drawing set with compass & rulers", category: "Textbooks", type: "rent", price: 100, condition: "Fair", department: "Architecture", seller: "Isha R.", contact: "isha@campus.edu", description: "Full set for your drawing board. A few marks, all tools included.", icon: "📐", bg: "#e9eddf", status: "Available" },
+        { id: "sample-5", title: "Noise-cancelling headphones", category: "Electronics", type: "buy", price: 1200, condition: "Good", department: "Mechanical Engineering", seller: "Neel K.", contact: "neel@campus.edu", description: "Perfect for study sessions. Works great, comes with a carry pouch.", icon: "🎧", bg: "#e9eddf", status: "Available" },
+        { id: "sample-6", title: "Intro to Materials Science · 4th ed.", category: "Textbooks", type: "buy", price: 260, condition: "Fair", department: "Civil Engineering", seller: "Riya D.", contact: "riya@campus.edu", description: "Some highlighting, no missing pages. Useful review questions included.", icon: "📖", bg: "#f3e8e3", status: "Available" },
+        { id: "sample-7", title: "Digital multimeter", category: "Lab Equipment", type: "rent", price: 150, condition: "Good", department: "Electrical Engineering", seller: "Kabir N.", contact: "kabir@campus.edu", description: "Reliable meter with test leads. Rental price per day.", icon: "🧰", bg: "#e2edf0", status: "Available" },
+        { id: "sample-8", title: "USB-C hub · 6-in-1", category: "Electronics", type: "buy", price: 400, condition: "New", department: "Computer Science", seller: "Anya T.", contact: "anya@campus.edu", description: "HDMI, USB and SD slots. Bought the wrong connector for my laptop.", icon: "🔌", bg: "#e9eddf", status: "Available" }
+      ];
+      const storageKey = "campusSwapListings";
+      let items = readItems();
+      let activeCategory = "All items";
+      let activeItem = null;
+      let conversations = {};
+      let toastTimer;
+
+      function readItems() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey));
+          return Array.isArray(saved) ? [...saved, ...seedItems.filter(sample => !saved.some(item => item.id === sample.id))] : seedItems;
+        } catch (error) {
+          console.warn("Saved listings could not be read; showing sample listings.", error);
+          return seedItems;
+        }
+      }
+
+      function saveItems() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(items));
+          return true;
+        } catch (error) {
+          console.error("Listings could not be saved in this browser.", error);
+          showToast("Could not save: browser storage may be full. Try a smaller photo.");
+          return false;
+        }
+      }
+
+      const grid = document.getElementById("listing-grid");
+      const searchInput = document.getElementById("search-input");
+      const createOverlay = document.getElementById("create-overlay");
+      const requestOverlay = document.getElementById("request-overlay");
+      const categoryFilters = document.getElementById("category-filters");
+      const listingCategory = document.getElementById("listing-category");
+
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+      }
+
+      function renderCategories() {
+        categoryFilters.innerHTML = categories.map(category =>
+          `<button class="category-chip${activeCategory === category ? " active" : ""}" type="button" data-category="${escapeHTML(category)}" aria-pressed="${activeCategory === category}">${escapeHTML(category)}</button>`
+        ).join("");
+        listingCategory.innerHTML = categories.slice(1).map(category =>
+          `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`
+        ).join("");
+      }
+
+      function initials(name) {
+        return name.split(/\s+/).map(part => part[0]).join("").slice(0, 2).toUpperCase();
+      }
+
+      function renderListings() {
+        const query = searchInput.value.trim().toLowerCase();
+        const type = document.getElementById("type-filter").value;
+        const condition = document.getElementById("condition-filter").value;
+        const shown = items.filter(item => {
+          const text = [item.title, item.category, item.department, item.description].join(" ").toLowerCase();
+          return (activeCategory === "All items" || item.category === activeCategory) &&
+            (!query || text.includes(query)) &&
+            (type === "all" || item.type === type) &&
+            (condition === "all" || item.condition === condition);
+        });
+
+        document.getElementById("results-count").textContent = `${shown.length} ${shown.length === 1 ? "item" : "items"} to discover`;
+        if (!shown.length) {
+          grid.innerHTML = `<div class="empty-state"><strong>No matches just yet</strong>Try a different search or category — the right find might be one filter away.</div>`;
+          return;
+        }
+
+        grid.innerHTML = shown.map(item => {
+          const visual = categoryVisuals[item.category] || { icon: "📦", bg: "#eef0e9", label: "CAMPUS FIND" };
+          const icon = item.image ? `<img src="${escapeHTML(item.image)}" alt="" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover">` : `<span class="art-emoji" aria-hidden="true">${escapeHTML(item.icon || visual.icon)}</span>`;
+          return `<article class="item-card">
+            <div class="item-art" style="--art-bg:${escapeHTML(item.bg || visual.bg)}">
+              ${icon}
+              <div class="item-flags"><span class="badge badge-intent">${item.type === "rent" ? "FOR RENT" : "FOR SALE"}</span>${item.status !== "Available" ? `<span class="badge badge-status">${escapeHTML(item.status.toUpperCase())}</span>` : ""}</div>
+              <span class="art-label">${escapeHTML(visual.label)}</span>
+            </div>
+            <div class="item-body">
+              <div class="item-topline"><h3 class="item-title">${escapeHTML(item.title)}</h3><div class="item-price">₹${Number(item.price).toLocaleString("en-IN")}<small>${item.type === "rent" ? "per rental" : "one-time"}</small></div></div>
+              <div class="item-meta"><span class="condition">${escapeHTML(item.condition)}</span><span>${escapeHTML(item.category)}</span></div>
+              <div class="item-footer">
+                <div class="seller"><span class="avatar" aria-hidden="true">${escapeHTML(initials(item.seller))}</span><span>${escapeHTML(item.department)}</span></div>
+                <button class="request-button" type="button" data-request="${escapeHTML(item.id)}" ${item.status !== "Available" ? "disabled" : ""}>${item.status === "Available" ? "Request item ↗" : "Unavailable"}</button>
+              </div>
+            </div>
+          </article>`;
+        }).join("");
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
+      }
+
+      function openDialog(overlay) {
+        overlay.hidden = false;
+        document.body.style.overflow = "hidden";
+        const focusable = overlay.querySelector("input, select, textarea, button");
+        if (focusable) focusable.focus();
+      }
+
+      function closeDialog(overlay) {
+        overlay.hidden = true;
+        if (createOverlay.hidden && requestOverlay.hidden) document.body.style.overflow = "";
+      }
+
+      function requestItem(id) {
+        activeItem = items.find(item => item.id === id);
+        if (!activeItem) return;
+        const messages = conversations[id] || [];
+        const visual = categoryVisuals[activeItem.category] || { bg: "#eef0e9", icon: "📦" };
+        document.getElementById("request-content").innerHTML = `
+          <div class="request-summary">
+            <span class="mini-art" style="--art-bg:${escapeHTML(activeItem.bg || visual.bg)}">${activeItem.image ? `<img src="${escapeHTML(activeItem.image)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">` : escapeHTML(activeItem.icon || visual.icon)}</span>
+            <span><strong>${escapeHTML(activeItem.title)}</strong><small>${activeItem.type === "rent" ? "For rent" : "For sale"} · ₹${Number(activeItem.price).toLocaleString("en-IN")} · ${escapeHTML(activeItem.seller)}</small></span>
+          </div>
+          <div class="instructions"><strong>A good way to get started</strong>Say hi, ask any questions, then agree on a public campus meetup — like the library, canteen, or student center. ${activeItem.type === "rent" ? "Confirm the rental period and return plan together." : "Confirm the item's condition and price before meeting."}</div>
+          <div class="chat-box" id="chat-box" aria-live="polite">${messages.length ? messages.map(message => `<div class="chat-message${message.mine ? " mine" : ""}">${escapeHTML(message.text)}</div>`).join("") : `<span class="chat-note">This is a demo conversation. Your message will appear here on this device.</span>`}</div>
+          <form class="chat-form" id="chat-form"><input id="chat-message" maxlength="300" required placeholder="Write a friendly message..." aria-label="Message to seller"><button class="button button-primary" type="submit">Send</button></form>
+          <p class="field-hint" style="margin:10px 1px 0">Seller contact: ${escapeHTML(activeItem.contact || "Contact details not provided")}. Meet in a public campus place.</p>`;
+        openDialog(requestOverlay);
+      }
+
+      categoryFilters.addEventListener("click", event => {
+        const button = event.target.closest("[data-category]");
+        if (!button) return;
+        activeCategory = button.dataset.category;
+        renderCategories();
+        renderListings();
+      });
+      searchInput.addEventListener("input", renderListings);
+      document.getElementById("type-filter").addEventListener("change", renderListings);
+      document.getElementById("condition-filter").addEventListener("change", renderListings);
+      grid.addEventListener("click", event => {
+        const button = event.target.closest("[data-request]");
+        if (button) requestItem(button.dataset.request);
+      });
+      document.getElementById("open-create").addEventListener("click", () => openDialog(createOverlay));
+
+      document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => {
+        closeDialog(button.closest(".overlay"));
+      }));
+      [createOverlay, requestOverlay].forEach(overlay => {
+        overlay.addEventListener("click", event => {
+          if (event.target === overlay) closeDialog(overlay);
+        });
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          closeDialog(createOverlay);
+          closeDialog(requestOverlay);
+        }
+      });
+
+      document.getElementById("listing-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        if (!form.reportValidity()) return;
+        const formData = new FormData(form);
+        const imageFile = formData.get("image");
+        let image = "";
+        if (imageFile && imageFile.size) {
+          if (!["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)) {
+            showToast("Please choose a JPG, PNG, or WebP image.");
+            return;
+          }
+          if (imageFile.size > 2 * 1024 * 1024) {
+            showToast("That photo is over 2 MB. Choose a smaller image.");
+            return;
+          }
+          try {
+            image = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error("The selected photo could not be read."));
+              reader.readAsDataURL(imageFile);
+            });
+          } catch (error) {
+            console.error("Listing photo could not be read.", error);
+            showToast("We couldn't read that photo. Please try another.");
+            return;
+          }
+        }
+
+        const title = String(formData.get("title")).trim();
+        const item = {
+          id: `listing-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          title,
+          category: formData.get("category"),
+          type: formData.get("type"),
+          price: Number(formData.get("price")),
+          condition: formData.get("condition"),
+          department: String(formData.get("department")).trim(),
+          contact: String(formData.get("contact")).trim(),
+          seller: "You",
+          description: String(formData.get("description") || "").trim(),
+          image,
+          status: "Available",
+          icon: (categoryVisuals[formData.get("category")] || { icon: "📦" }).icon,
+          bg: (categoryVisuals[formData.get("category")] || { bg: "#eef0e9" }).bg
+        };
+        items.unshift(item);
+        if (!saveItems()) {
+          items.shift();
+          return;
+        }
+        form.reset();
+        closeDialog(createOverlay);
+        renderListings();
+        showToast("Your listing is live — thanks for sharing!");
+        window.scrollTo({ top: document.querySelector(".market-heading").offsetTop - 20, behavior: "smooth" });
+      });
+
+      requestOverlay.addEventListener("submit", event => {
+        if (event.target.id !== "chat-form" || !activeItem) return;
+        event.preventDefault();
+        const input = document.getElementById("chat-message");
+        const text = input.value.trim();
+        if (!text) return;
+        const thread = conversations[activeItem.id] || [];
+        thread.push({ text, mine: true });
+        conversations[activeItem.id] = thread;
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = thread.map(message => `<div class="chat-message${message.mine ? " mine" : ""}">${escapeHTML(message.text)}</div>`).join("");
+        input.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      renderCategories();
+      renderListings();
+    })();
+  </script>
+</body>
+</html>

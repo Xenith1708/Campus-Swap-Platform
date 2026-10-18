@@ -8,11 +8,22 @@ from flask import Flask, abort, flash, g, redirect, render_template, request, ur
 
 CATEGORIES = ("Book", "Lab Coat", "Calculator", "Other")
 LISTING_TYPES = ("Sell", "Rent")
+IS_VERCEL = bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))
+
+secret_key = os.environ.get("SECRET_KEY")
+if IS_VERCEL and not secret_key:
+    raise RuntimeError("Set the SECRET_KEY environment variable in your Vercel project.")
+
+default_database = (
+    Path("/tmp/campusswap.sqlite3")
+    if IS_VERCEL
+    else Path(__file__).resolve().parent / "instance" / "campusswap.sqlite3"
+)
 
 app = Flask(__name__)
 app.config.update(
-    DATABASE=str(Path(app.instance_path) / "campusswap.sqlite3"),
-    SECRET_KEY=os.environ.get("SECRET_KEY", "change-this-development-secret"),
+    DATABASE=os.environ.get("DATABASE_PATH", str(default_database)),
+    SECRET_KEY=secret_key or "change-this-development-secret",
 )
 
 
